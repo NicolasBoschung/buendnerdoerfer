@@ -496,12 +496,12 @@
     {
       name: "Chur",
       image: "img/chur.jpg",
-      hints: ["Älteste Stadt der Schweiz", "Hauptort von Graubünden", "Tor zu den Alpen", "Liegt am Alpenrhein", "Besitzt eine autofreie Altstadt", "Wahrzeichen ist die Kathedrale St. Mariä Himmelfahrt"]
+      hints: ["Älteste Stadt der Schweiz", "Hauptort von Graubünden", "Tor zu den Alpen", "Liegt am Alpenrhein", "Besitzt eine autofreie Altstadt", " Ein Wahrzeichen ist die Martinskirche"]
     },
     {
       name: "St. Moritz",
       image: "img/stmoritz.jpg",
-      hints: ["Weltbekannter Kurort im Engadin", "Gastgeber von zwei Olympischen Winterspielen", "Liegt an einem See auf 1856 m ü. M.", "Bekannt für das 'Champagner-Klima'", "Hausberg ist die Corviglia", "Berühmt für Luxushotels und Jetset"]
+      hints: ["Weltbekannter Kurort im Engadin", "Gastgeber von zwei Olympischen Winterspielen", "Liegt an einem See auf 1856 m ü. M.", "Gemeindepräsident: Christian Jott Jenny", "Hausberg ist die Corviglia", "Berühmt für Luxushotels und Jetset"]
     },
     {
       name: "Davos",
@@ -511,7 +511,7 @@
     {
       name: "Arosa",
       image: "img/arosa.jpg",
-      hints: ["Liegt am Ende des Schanfigger Tales", "Seit 2014 mit der Lenzerheide verbunden", "Bekannt für das Bärenland", "Slogan: 'Arosa Geniessen'", "Beliebtes Ziel für das Humorfestival", "Eichhörnchenweg ist eine Attraktion"]
+      hints: ["Liegt am Ende des Schanfigger Tales", "Seit 2014 mit der Lenzerheide verbunden", "Bekannt für das Bärenland", "Höchster Punkt: Aroser Rothorn", "Beliebtes Ziel für das Humorfestival", "Postleitzahl: 7050"]
     },
     {
       name: "Flims",
@@ -531,7 +531,7 @@
     {
       name: "Thusis",
       image: "img/thusis.jpg",
-      hints: ["Liegt am nördlichen Eingang zur Viamala-Schlucht", "Wichtiger Verkehrsknotenpunkt am Splügen- und San Bernardino-Pass", "Austragungsort des jährlichen Viamala-Laufs", "Gehört zur Region Viamala", "Endpunkt der Albulalinie Richtung St. Moritz", "Historischer Handelsplatz"]
+      hints: ["Liegt am nördlichen Eingang zur Viamala-Schlucht", "Wichtiger Verkehrsknotenpunkt am San Bernardino-Pass", "Austragungsort des jährlichen Viamala-Laufs", "Gehört zur Region Viamala", "Endpunkt der Albulalinie Richtung St. Moritz", "Historischer Handelsplatz"]
     },
     {
       name: "Disentis",
@@ -749,40 +749,46 @@
     
     if (!guess) return;
 
-    if (guess === answer) {
+    const dist = levenshtein(guess, answer);
+    const nameParts = place.name.toLowerCase().split(" ");
+
+    // 1. Zuerst prüfen, ob die Antwort exakt richtig ist
+    if (dist === 0) {
       input.classList.add("correct");
       setTimeout(() => endGame(true), 600);
-    } else {
-      triesLeft--;
-      input.classList.add("wrong");
-      setTimeout(() => input.classList.remove("wrong"), 1000);
-      hintsTitle.innerHTML = `Hinweise: <span class="tries-right">${triesLeft} Versuche</span>`;
-      if (revealedHints < totalHints) revealedHints++;
-      renderHints();
-      if (triesLeft <= 0) endGame(false);
+      return; // WICHTIG: Hier bricht die Funktion ab. Nichts darunter wird ausgeführt.
     }
 
-         // Feedback
-// Feedback Logik
-const dist = levenshtein(guess, answer);
-const nameParts = place.name.toLowerCase().split(" ");
+    // 2. Wenn die Antwort FALSCH ist:
+    triesLeft--;
+    input.classList.add("wrong");
+    setTimeout(() => input.classList.remove("wrong"), 1000);
+    hintsTitle.innerHTML = `Hinweise: <span class="tries-right">${triesLeft} Versuche</span>`;
 
-if (dist <= 2) {
-  hintEl.textContent = "🔥 Nah dran! Überprüfe deinen Text.";
-  hintEl.className = "famous-hint hot";
-} else if (nameParts.some(part => part.length > 2 && guess.includes(part))) {
-  hintEl.textContent = "👍 Fast! Ein Teil des Namens stimmt.";
-  hintEl.className = "famous-hint warm";
-} else {
-  hintEl.textContent = "❄️ Nicht ganz. Lies nochmals die Hinweise.";
-  hintEl.className = "famous-hint cold";
-}
+    // 3. Feedback-Texte (Hot / Warm / Cold)
+    if (dist <= 2) {
+      hintEl.textContent = "🔥 Nah dran! Überprüfe deinen Text.";
+      hintEl.className = "famous-hint hot";
+    } else if (nameParts.some(part => part.length > 2 && guess.includes(part))) {
+      hintEl.textContent = "👍 Fast! Ein Teil des Namens stimmt.";
+      hintEl.className = "famous-hint warm";
+    } else {
+      hintEl.textContent = "❄️ Nicht ganz. Lies nochmals die Hinweise.";
+      hintEl.className = "famous-hint cold";
+    }
 
-if (revealedHints < totalHints) revealedHints++;
-renderHints();
-if (triesLeft <= 0) endGame(false);
-}
+    // 4. Neuen Hinweis aufdecken
+    if (revealedHints < totalHints) {
+      revealedHints++;
+      renderHints();
+    }
 
+    // 5. Prüfen, ob das Spiel verloren ist
+    if (triesLeft <= 0) {
+      setTimeout(() => endGame(false), 600);
+    }
+  }
+  
   resetGame(0);
 
   input.addEventListener("input", () => {
